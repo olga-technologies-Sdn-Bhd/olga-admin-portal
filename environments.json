@@ -1,0 +1,8 @@
+{
+  "dev": {
+    "apiBaseUrl": "https://ca-olga-core-api-dev.agreeableocean-8bb4ca77.malaysiawest.azurecontainerapps.io"
+  },
+  "production": {
+    "apiBaseUrl": "https://ca-olga-core-api-prod.blueground-4e984cd4.malaysiawest.azurecontainerapps.io"
+  }
+}
