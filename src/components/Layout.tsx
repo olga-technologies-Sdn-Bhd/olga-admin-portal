@@ -29,6 +29,8 @@ const envLabel = { local: 'Local', dev: 'Dev', staging: 'Staging', production: '
 export function Layout() {
   const { environment, useMocks } = config();
   const { user, logout } = useAuth();
+  // Local runs can proxy to the deployed dev or prod API (npm run dev / dev:prod).
+  const proxied = environment === 'local' && !useMocks && __API_TARGET__.name !== 'local' ? __API_TARGET__.name : null;
 
   return (
     <div className="shell">
@@ -36,7 +38,7 @@ export function Layout() {
       <aside className="sidebar">
         <div className="brand">
           <span className="logo">O</span> OL-GA Admin
-          <span className={`env env-${environment}`}>{envLabel[environment]}</span>
+          <span className={`env env-${proxied ?? environment}`}>{proxied ? `Local → ${envLabel[proxied]}` : envLabel[environment]}</span>
         </div>
         <nav aria-label="Main">
           {sections.map((s) => (
@@ -61,6 +63,9 @@ export function Layout() {
         </div>
       </aside>
       <main className="content" id="main">
+        {proxied === 'production' && (
+          <div className="prod-banner" role="alert">You are connected to the PRODUCTION API. Changes affect live data.</div>
+        )}
         <ErrorBoundary>
           <Suspense fallback={<p className="muted pad">Loading…</p>}>
             <Outlet />

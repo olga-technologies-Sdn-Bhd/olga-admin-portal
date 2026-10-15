@@ -1,8 +1,10 @@
 // Writes dist/config.json and dist/staticwebapp.config.json for one environment from env vars.
 // Used by the deploy workflow; values come from the GitHub Environment (dev / production).
+// ADMIN_API_BASE_URL is optional: it defaults to the environment's URL in environments.json.
 import { readFileSync, writeFileSync } from 'node:fs';
 
-const required = ['ADMIN_ENVIRONMENT', 'ADMIN_API_BASE_URL', 'ADMIN_AUTH_AUTHORITY', 'ADMIN_AUTH_CLIENT_ID', 'ADMIN_AUTH_API_SCOPES'];
+const endpoints = JSON.parse(readFileSync('environments.json', 'utf8'));
+const required = ['ADMIN_ENVIRONMENT', 'ADMIN_AUTH_AUTHORITY', 'ADMIN_AUTH_CLIENT_ID', 'ADMIN_AUTH_API_SCOPES'];
 const missing = required.filter((k) => !process.env[k]);
 if (missing.length) {
   console.error(`Missing required variables: ${missing.join(', ')}`);
@@ -10,7 +12,7 @@ if (missing.length) {
 }
 
 const env = process.env;
-const apiBaseUrl = env.ADMIN_API_BASE_URL.replace(/\/$/, '');
+const apiBaseUrl = (env.ADMIN_API_BASE_URL || endpoints[env.ADMIN_ENVIRONMENT]?.apiBaseUrl || '').replace(/\/$/, '');
 if (!apiBaseUrl.startsWith('https://')) {
   console.error('ADMIN_API_BASE_URL must be https');
   process.exit(1);

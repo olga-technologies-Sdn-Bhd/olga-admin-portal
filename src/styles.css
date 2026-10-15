@@ -105,6 +105,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .env-dev { background: rgba(122, 168, 255, .18); color: #7aa8ff; }
 .env-staging { background: rgba(240, 182, 74, .18); color: #f0b64a; }
 .env-production { background: rgba(242, 122, 134, .18); color: #f27a86; }
+.prod-banner { margin-bottom: 16px; padding: 10px 14px; border-radius: 8px; background: rgba(242, 122, 134, .15); color: #f27a86; font-weight: 600; }
 .skip-link { position: absolute; left: -999px; top: 8px; background: var(--surface); padding: 8px 12px; border-radius: 6px; z-index: 10; }
 .skip-link:focus { left: 8px; }
 

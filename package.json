@@ -1,10 +1,12 @@
 {
-  "name": "olga-admin",
+  "name": "olga-admin-portal",
   "private": true,
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --mode dev",
+    "dev:prod": "vite --mode prod",
+    "dev:local": "vite",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b",
     "lint": "eslint . --max-warnings=0",

@@ -17,7 +17,7 @@ export function Settings() {
       <PageHeader title="Settings" subtitle="Environment and connectivity" />
       <section className="card">
         <div className="field"><label>Environment</label><span>{environment}</span></div>
-        <div className="field"><label>Core API URL</label><code>{apiBaseUrl || '(same origin, via dev proxy)'}</code></div>
+        <div className="field"><label>Core API URL</label><code>{apiBaseUrl || `${__API_TARGET__.url} (${__API_TARGET__.name}, via dev proxy)`}</code></div>
         <div className="field"><label>Data source</label><span>{useMocks ? 'Mock data' : 'Live API'}</span></div>
         <div className="field">
           <label>Core API readiness</label>
