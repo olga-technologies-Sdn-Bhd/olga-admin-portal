@@ -27,7 +27,7 @@ export function Settings() {
         </div>
         <div className="field">
           <label>Authentication</label>
-          <span>{{ none: 'Disabled (local only)', basic: 'Fixed username/password (local/dev only)', entra: 'Microsoft Entra ID' }[auth.mode]}{user && `, signed in as ${user.username}`}</span>
+          <span>{{ none: 'Disabled (local/dev only)', basic: 'Fixed username/password (local/dev only)', entra: 'Microsoft Entra ID' }[auth.mode]}{user && `, signed in as ${user.username}`}</span>
         </div>
         <div className="field"><label>App version</label><code>{__APP_VERSION__}</code></div>
       </section>

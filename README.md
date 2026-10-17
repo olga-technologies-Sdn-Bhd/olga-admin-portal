@@ -114,11 +114,11 @@ Pull requests run linting, type checking, tests, and a production build. Pushes 
 
 | `auth.mode` | How it works | Allowed in |
 |---|---|---|
-| `none` | No login | local |
+| `none` | No login | local, dev |
 | `basic` | One fixed username/password. `config.json` holds only its SHA-256 hash | local, dev |
 | `entra` | Microsoft Entra ID sign-in plus the `Olga.Admin` app role | everywhere (**required** in production) |
 
-> `basic` is a convenience gate, not real security: the check runs in the browser. The app refuses to start in production unless `auth.mode` is `entra`.
+> Dev deployments currently default to `none` so the portal can be opened before the admin Entra registration exists. Production remains fail-closed and requires `entra`. `basic` is a convenience gate, not real security: the check runs in the browser.
 
 To change the basic-mode password, put the new hash in `auth.passwordSha256`:
 
@@ -141,9 +141,9 @@ node -e "console.log(require('crypto').createHash('sha256').update(process.argv[
    |---|---|---|
    | Secret | `AZURE_STATIC_WEB_APPS_API_TOKEN` | SWA deployment token |
    | Variable | `ADMIN_API_BASE_URL` | Core API URL from the table above (optional; defaults to `environments.json`) |
-   | Variable | `ADMIN_AUTH_AUTHORITY` | `https://login.microsoftonline.com/<tenant-id>` |
-   | Variable | `ADMIN_AUTH_CLIENT_ID` | Admin SPA client ID |
-   | Variable | `ADMIN_AUTH_API_SCOPES` | `api://<api-client-id>/access_as_user` |
+   | Variable | `ADMIN_AUTH_AUTHORITY` | `https://login.microsoftonline.com/<tenant-id>` (required for `prd`) |
+   | Variable | `ADMIN_AUTH_CLIENT_ID` | Admin SPA client ID (required for `prd`) |
+   | Variable | `ADMIN_AUTH_API_SCOPES` | `api://<api-client-id>/access_as_user` (required for `prd`) |
    | Variable | `ADMIN_AUTH_REQUIRED_ROLE` | `Olga.Admin` (optional, this is the default) |
 
 4. **Olga.Core:**

@@ -4,7 +4,7 @@
 export type Environment = 'local' | 'dev' | 'staging' | 'production';
 
 /**
- * none  - no login (local development only)
+ * none  - no login (local/development only)
  * basic - single fixed username/password checked in the browser. NOT real security:
  *         anything shipped to the browser can be read. Allowed in local/dev only.
  * entra - Microsoft Entra ID sign-in with app-role check. Required in staging/production.
@@ -62,7 +62,7 @@ export function validateConfig(c: AppConfig): string[] {
   if (!['none', 'basic', 'entra'].includes(auth.mode)) errors.push(`Unknown auth.mode "${auth.mode}"`);
   if (c.environment !== 'local') {
     if (c.useMocks) errors.push('useMocks must be false outside local');
-    if (auth.mode === 'none') errors.push('auth.mode "none" is only allowed in local');
+    if (c.environment !== 'dev' && auth.mode === 'none') errors.push('auth.mode "none" is only allowed in local/dev');
     if (!c.apiBaseUrl.startsWith('https://')) errors.push('apiBaseUrl must be an https URL outside local');
   }
   if ((c.environment === 'staging' || c.environment === 'production') && auth.mode !== 'entra') {

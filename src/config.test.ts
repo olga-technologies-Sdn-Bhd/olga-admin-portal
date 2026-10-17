@@ -25,6 +25,11 @@ describe('validateConfig', () => {
     expect(validateConfig({ ...base, environment: 'local', apiBaseUrl: '', useMocks: true, auth: { ...base.auth, mode: 'none' } })).toEqual([]);
   });
 
+  it('allows authentication to be disabled in dev but not production', () => {
+    expect(validateConfig({ ...base, environment: 'dev', auth: { ...base.auth, mode: 'none' } })).toEqual([]);
+    expect(validateConfig({ ...base, auth: { ...base.auth, mode: 'none' } })).toEqual([expect.stringContaining('must be "entra" in production')]);
+  });
+
   it('requires authority and clientId when auth is enabled', () => {
     const errors = validateConfig({ ...base, auth: { ...base.auth, authority: '', clientId: '' } });
     expect(errors).toHaveLength(2);

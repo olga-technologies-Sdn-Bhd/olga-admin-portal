@@ -94,6 +94,7 @@ jobs:
         run: node scripts/write-config.mjs
         env:
           ADMIN_ENVIRONMENT: ${{ env.DEPLOY_ENVIRONMENT == 'prd' && 'production' || 'dev' }}
+          ADMIN_AUTH_MODE: ${{ env.DEPLOY_ENVIRONMENT == 'prd' && 'entra' || 'none' }}
           ADMIN_API_BASE_URL: ${{ vars.ADMIN_API_BASE_URL }}
           ADMIN_AUTH_AUTHORITY: ${{ vars.ADMIN_AUTH_AUTHORITY }}
           ADMIN_AUTH_CLIENT_ID: ${{ vars.ADMIN_AUTH_CLIENT_ID }}

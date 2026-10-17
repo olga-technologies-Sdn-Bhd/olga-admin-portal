@@ -4,14 +4,16 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 
 const endpoints = JSON.parse(readFileSync('environments.json', 'utf8'));
-const required = ['ADMIN_ENVIRONMENT', 'ADMIN_AUTH_AUTHORITY', 'ADMIN_AUTH_CLIENT_ID', 'ADMIN_AUTH_API_SCOPES'];
+const env = process.env;
+const authMode = env.ADMIN_AUTH_MODE || (env.ADMIN_ENVIRONMENT === 'production' ? 'entra' : 'none');
+const required = ['ADMIN_ENVIRONMENT'];
+if (authMode === 'entra') required.push('ADMIN_AUTH_AUTHORITY', 'ADMIN_AUTH_CLIENT_ID', 'ADMIN_AUTH_API_SCOPES');
 const missing = required.filter((k) => !process.env[k]);
 if (missing.length) {
   console.error(`Missing required variables: ${missing.join(', ')}`);
   process.exit(1);
 }
 
-const env = process.env;
 const apiBaseUrl = (env.ADMIN_API_BASE_URL || endpoints[env.ADMIN_ENVIRONMENT]?.apiBaseUrl || '').replace(/\/$/, '');
 if (!apiBaseUrl.startsWith('https://')) {
   console.error('ADMIN_API_BASE_URL must be https');
@@ -24,10 +26,10 @@ const config = {
   useMocks: false,
   requestTimeoutMs: Number(env.ADMIN_REQUEST_TIMEOUT_MS || 15000),
   auth: {
-    mode: 'entra',
-    authority: env.ADMIN_AUTH_AUTHORITY,
-    clientId: env.ADMIN_AUTH_CLIENT_ID,
-    apiScopes: env.ADMIN_AUTH_API_SCOPES.split(/[\s,]+/).filter(Boolean),
+    mode: authMode,
+    authority: env.ADMIN_AUTH_AUTHORITY || '',
+    clientId: env.ADMIN_AUTH_CLIENT_ID || '',
+    apiScopes: (env.ADMIN_AUTH_API_SCOPES || '').split(/[\s,]+/).filter(Boolean),
     requiredRole: env.ADMIN_AUTH_REQUIRED_ROLE || 'Olga.Admin',
   },
 };
