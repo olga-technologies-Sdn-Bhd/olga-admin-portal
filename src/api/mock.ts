@@ -16,17 +16,18 @@ const members: AdminMember[] = names.map((n, i) => ({
   profileStatus: statuses[i % statuses.length],
   visibility: 'MEMBERS',
   completenessScore: 25 * (1 + (i % 4)),
+  etag: '"1"',
   createdAt: iso(-60 + i * 3),
   updatedAt: iso(-10 + i),
 }));
 
 const venues: Venue[] = [
-  { venueId: 'ven_olympia', name: 'Olympia London', countryCode: 'GB', region: null, city: 'London', timezoneId: 'Europe/London', status: 'ACTIVE', createdAt: iso(-90) },
+  { venueId: 'ven_olympia', name: 'Olympia London', countryCode: 'GB', region: null, city: 'London', timezoneId: 'Europe/London', status: 'ACTIVE', etag: '"1"', createdAt: iso(-90) },
 ];
 
 const event = (eventId: string, name: string, start: number, status: AdminEvent['status'], attendeeCount: number): AdminEvent => ({
   eventId, communityId: 'olga', name, description: null, startsAt: iso(start), endsAt: iso(start + 0.2), status,
-  liveModeEnabled: true, venueId: 'ven_olympia', venue: 'Olympia London', attendeeCount, liveCount: 0, createdAt: iso(-30), updatedAt: iso(-1),
+  liveModeEnabled: true, venueId: 'ven_olympia', venue: 'Olympia London', attendeeCount, liveCount: 0, etag: '"1"', createdAt: iso(-30), updatedAt: iso(-1),
 });
 const events: AdminEvent[] = [
   event('evt_london_tech', 'London Tech Week Mixer', 3, 'PUBLISHED', 184),
@@ -35,11 +36,11 @@ const events: AdminEvent[] = [
 ];
 
 const reports: ModerationReport[] = [
-  { reportId: 'case-001', sourceType: 'MEMBER_REPORT', subjectMemberId: members[4].memberId, subjectDisplayName: members[4].displayName, resourceType: 'PROFILE', resourceId: members[4].memberId, priority: 'NORMAL', status: 'OPEN', createdAt: iso(-1), closedAt: null },
+  { reportId: 'case-001', sourceType: 'MEMBER_REPORT', subjectMemberId: members[4].memberId, subjectDisplayName: members[4].displayName, resourceType: 'PROFILE', resourceId: members[4].memberId, priority: 'NORMAL', status: 'OPEN', etag: '"1"', createdAt: iso(-1), closedAt: null },
 ];
 
 const privacyRequests: PrivacyRequest[] = [
-  { privacyRequestId: 'prv_001', memberId: members[3].memberId, requestType: 'EXPORT', status: 'OPEN', createdAt: iso(-2), dueAt: iso(28), verifiedAt: null, completedAt: null },
+  { privacyRequestId: 'prv_001', memberId: members[3].memberId, requestType: 'EXPORT', status: 'OPEN', etag: '"1"', createdAt: iso(-2), dueAt: iso(28), verifiedAt: null, completedAt: null },
 ];
 
 const data = { members, events, venues, reports, privacyRequests };
@@ -51,7 +52,7 @@ export const list = <K extends keyof Data>(k: K) => delay(data[k]);
 export function patch<K extends keyof Data>(k: K, key: keyof Row<K>, value: string, changes: Partial<Row<K>>) {
   const row = (data[k] as Row<K>[]).find((x) => x[key] === value);
   if (!row) throw new Error('Not found');
-  Object.assign(row, changes, { updatedAt: new Date().toISOString() });
+  Object.assign(row, changes, { etag: nextEtag(row.etag), updatedAt: new Date().toISOString() });
   return delay(row);
 }
 
@@ -59,14 +60,14 @@ export function createEvent(input: EventInput, publish: boolean) {
   const now = new Date().toISOString();
   const row: AdminEvent = {
     ...input, eventId: `evt_${crypto.randomUUID().slice(0, 8)}`, communityId: 'olga', status: publish ? 'PUBLISHED' : 'DRAFT',
-    venue: venues.find((v) => v.venueId === input.venueId)?.name ?? null, attendeeCount: 0, liveCount: 0, createdAt: now, updatedAt: now,
+    venue: venues.find((v) => v.venueId === input.venueId)?.name ?? null, attendeeCount: 0, liveCount: 0, etag: '"1"', createdAt: now, updatedAt: now,
   };
   events.push(row);
   return delay(row);
 }
 
 export function createVenue(input: VenueInput) {
-  const row: Venue = { ...input, venueId: `ven_${crypto.randomUUID().slice(0, 8)}`, status: 'ACTIVE', createdAt: new Date().toISOString() };
+  const row: Venue = { ...input, venueId: `ven_${crypto.randomUUID().slice(0, 8)}`, status: 'ACTIVE', etag: '"1"', createdAt: new Date().toISOString() };
   venues.push(row);
   return delay(row);
 }
@@ -82,3 +83,19 @@ export function stats(): Promise<DashboardStats> {
     connectionsLast7Days: 57,
   });
 }
+
+export function suspendReportedMember(reportId: string) {
+  const report = reports.find((r) => r.reportId === reportId);
+  if (!report?.subjectMemberId) throw new Error('Report subject not found');
+  const member = members.find((m) => m.memberId === report.subjectMemberId);
+  if (!member) throw new Error('Member not found');
+  member.profileStatus = 'HIDDEN';
+  member.etag = nextEtag(member.etag);
+  member.updatedAt = new Date().toISOString();
+  report.status = 'ACTIONED';
+  report.etag = nextEtag(report.etag);
+  report.closedAt = new Date().toISOString();
+  return delay(report);
+}
+
+const nextEtag = (etag: string) => `"${Number(etag.replaceAll('"', '')) + 1}"`;

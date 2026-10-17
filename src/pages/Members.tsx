@@ -16,7 +16,7 @@ export function Members() {
   const [status, setStatus] = useState('');
   const members = useQuery({ queryKey: ['members'], queryFn: getMembers });
   const update = useMutation({
-    mutationFn: ({ m, s }: { m: AdminMember; s: ProfileStatus }) => setMemberStatus(m.memberId, s),
+    mutationFn: ({ m, s }: { m: AdminMember; s: ProfileStatus }) => setMemberStatus(m.memberId, s, m.etag),
     onSuccess: (_, { m, s }) => {
       toast('success', `${m.displayName} ${verb[s]}`);
       qc.invalidateQueries({ queryKey: ['members'] });

@@ -1,5 +1,5 @@
 // Writes dist/config.json and dist/staticwebapp.config.json for one environment from env vars.
-// Used by the deploy workflow; values come from the GitHub Environment (dev / production).
+// Used by the deploy workflow; values come from the GitHub Environment (dev / prd).
 // ADMIN_API_BASE_URL is optional: it defaults to the environment's URL in environments.json.
 import { readFileSync, writeFileSync } from 'node:fs';
 
@@ -28,7 +28,7 @@ const config = {
     authority: env.ADMIN_AUTH_AUTHORITY,
     clientId: env.ADMIN_AUTH_CLIENT_ID,
     apiScopes: env.ADMIN_AUTH_API_SCOPES.split(/[\s,]+/).filter(Boolean),
-    requiredRole: env.ADMIN_AUTH_REQUIRED_ROLE ?? 'Olga.Admin',
+    requiredRole: env.ADMIN_AUTH_REQUIRED_ROLE || 'Olga.Admin',
   },
 };
 writeFileSync('dist/config.json', JSON.stringify(config, null, 2));
