@@ -62,7 +62,6 @@ export function validateConfig(c: AppConfig): string[] {
   if (!['none', 'basic', 'entra'].includes(auth.mode)) errors.push(`Unknown auth.mode "${auth.mode}"`);
   if (c.environment !== 'local') {
     if (c.useMocks) errors.push('useMocks must be false outside local');
-    if (c.environment !== 'dev' && auth.mode === 'none') errors.push('auth.mode "none" is only allowed in local/dev');
     if (!c.apiBaseUrl.startsWith('https://')) errors.push('apiBaseUrl must be an https URL outside local');
   }
   if ((c.environment === 'staging' || c.environment === 'production') && auth.mode !== 'entra') {
