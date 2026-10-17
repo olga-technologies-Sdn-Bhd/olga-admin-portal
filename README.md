@@ -139,7 +139,7 @@ node -e "console.log(require('crypto').createHash('sha256').update(process.argv[
 
    | Kind | Name | Value |
    |---|---|---|
-   | Secret | `AZURE_STATIC_WEB_APPS_API_TOKEN` | SWA deployment token |
+   | Secret | `AZURE_STATIC_WEB_APPS_API_TOKEN` | SWA deployment token; deployment is skipped until configured |
    | Variable | `ADMIN_API_BASE_URL` | Core API URL from the table above (optional; defaults to `environments.json`) |
    | Variable | `ADMIN_AUTH_AUTHORITY` | `https://login.microsoftonline.com/<tenant-id>` (required for `prd`) |
    | Variable | `ADMIN_AUTH_CLIENT_ID` | Admin SPA client ID (required for `prd`) |
