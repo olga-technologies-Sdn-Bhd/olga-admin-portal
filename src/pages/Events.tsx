@@ -23,7 +23,7 @@ export function Events() {
 
   const refresh = () => { qc.invalidateQueries({ queryKey: ['events'] }); qc.invalidateQueries({ queryKey: ['stats'] }); };
   const transition = useMutation({
-    mutationFn: ({ e, action }: { e: AdminEvent; action: 'publish' | 'cancel' }) => (action === 'publish' ? publishEvent : cancelEvent)(e.eventId),
+    mutationFn: ({ e, action }: { e: AdminEvent; action: 'publish' | 'cancel' }) => (action === 'publish' ? publishEvent : cancelEvent)(e.eventId, e.etag),
     onSuccess: (_, { e, action }) => { toast('success', `${e.name} ${action === 'publish' ? 'published' : 'cancelled'}`); refresh(); },
     onError: (err) => toast('error', `Update failed: ${errorMessage(err)}`),
   });
@@ -116,7 +116,7 @@ function EventForm({ event, onClose, onSaved }: { event: AdminEvent | null; onCl
   const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) => setForm((f) => ({ ...f, [k]: v }));
 
   const save = useMutation({
-    mutationFn: ({ input, publish }: { input: EventInput; publish: boolean }) => (event ? updateEvent(event.eventId, input) : createEvent(input, publish)),
+    mutationFn: ({ input, publish }: { input: EventInput; publish: boolean }) => (event ? updateEvent(event.eventId, input, event.etag) : createEvent(input, publish)),
     onSuccess: (saved, { publish }) => {
       toast('success', event ? `${saved.name} updated` : `${saved.name} ${publish ? 'published' : 'saved as draft'}`);
       onSaved();

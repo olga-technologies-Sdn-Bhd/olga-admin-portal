@@ -21,12 +21,18 @@ function convertKeys(value: unknown, fn: (k: string) => string): unknown {
   return value;
 }
 
-export async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
+interface RequestOptions {
+  /** Strong entity tag returned with the latest resource representation. */
+  ifMatch?: string;
+}
+
+export async function request<T>(method: string, path: string, body?: unknown, options: RequestOptions = {}): Promise<T> {
   const { apiBaseUrl, requestTimeoutMs } = config();
   const headers: Record<string, string> = { Accept: 'application/json' };
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   // Olga.Core rejects /v1 writes without an idempotency key.
   if (method !== 'GET') headers['Idempotency-Key'] = crypto.randomUUID();
+  if (options.ifMatch) headers['If-Match'] = options.ifMatch;
   const token = await getAccessToken();
   if (token) headers.Authorization = `Bearer ${token}`;
 
@@ -44,7 +50,10 @@ export async function request<T>(method: string, path: string, body?: unknown): 
   }
 
   if (!res.ok) {
-    let code = res.status === 401 ? 'UNAUTHORIZED' : res.status === 403 ? 'FORBIDDEN' : 'REQUEST_FAILED';
+    let code = res.status === 401 ? 'UNAUTHORIZED'
+      : res.status === 403 ? 'FORBIDDEN'
+        : res.status === 412 ? 'RESOURCE_VERSION_CONFLICT'
+          : 'REQUEST_FAILED';
     try {
       const err = await res.json();
       code = err.code ?? err.error ?? code;

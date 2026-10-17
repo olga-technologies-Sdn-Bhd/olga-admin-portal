@@ -27,7 +27,7 @@ Internal admin panel for the **OL-GA** event-networking platform. Operators use 
 | **Dev** | _Not deployed yet_ | `https://ca-olga-core-api-dev.agreeableocean-8bb4ca77.malaysiawest.azurecontainerapps.io` | [Open](https://ca-olga-core-api-dev.agreeableocean-8bb4ca77.malaysiawest.azurecontainerapps.io/swagger/index.html) |
 | **Prod** | _Not deployed yet_ | `https://ca-olga-core-api-prod.blueground-4e984cd4.malaysiawest.azurecontainerapps.io` | [Open](https://ca-olga-core-api-prod.blueground-4e984cd4.malaysiawest.azurecontainerapps.io/swagger/index.html) |
 
-> The admin panel's hosting (Azure Static Web App `stapp-olga-admin-<suffix>`) is defined in `Olga.Infrastructure` but is switched off (`enable_admin_static_web_app = false`). Once it is created per environment, put its `https://<name>.azurestaticapps.net` URL in the table above.
+> The admin panel's hosting is provisioned by `Olga.Infrastructure` as `stapp-olga-admin-<suffix>`. Add each Terraform `admin_static_web_app_url` output to the table above.
 
 The API URLs live in one place: [`environments.json`](environments.json). Local runs and deploys both read it.
 
@@ -106,9 +106,9 @@ The panel also includes:
 | Branch | GitHub Environment | Deploys to |
 |---|---|---|
 | `develop` | `dev` | Dev admin panel → dev Olga.Core |
-| `main` | `production` | Prod admin panel → prod Olga.Core |
+| `main` | `prd` | Prod admin panel → prod Olga.Core |
 
-On every push, `.github/workflows/deploy.yml` lints, tests and builds the app. Then `scripts/write-config.mjs` writes `config.json` (API URL from `environments.json`) and the security headers, and the result is uploaded to Azure Static Web Apps.
+Pull requests run linting, type checking, tests, and a production build. Pushes to `develop` and `main` run the same checks, then `scripts/write-config.mjs` writes the environment-specific `config.json` and security headers before the build artifact is uploaded to Azure Static Web Apps. Manual runs can deploy either `dev` or `prd`.
 
 ### Login modes
 
@@ -133,19 +133,23 @@ node -e "console.log(require('crypto').createHash('sha256').update(process.argv[
    - Redirect URI: `https://<swa-host>`
    - App role: `Olga.Admin`, assigned to the admins
    - Delegated Olga.Core scope
-3. **GitHub → Settings → Environments** (`dev`, `production`):
+3. **GitHub → Settings → Environments** (`dev`, `prd`):
+
+   For `prd`, require reviewers and restrict deployment branches to `main`. The workflow also rejects any manual production deployment not dispatched from `main`.
 
    | Kind | Name | Value |
    |---|---|---|
    | Secret | `AZURE_STATIC_WEB_APPS_API_TOKEN` | SWA deployment token |
-   | Variable | `ADMIN_ENVIRONMENT` | `dev` / `production` |
-   | Variable | `ADMIN_API_BASE_URL` | Core API URL from the table above (also the switch that enables the deploy job) |
+   | Variable | `ADMIN_API_BASE_URL` | Core API URL from the table above (optional; defaults to `environments.json`) |
    | Variable | `ADMIN_AUTH_AUTHORITY` | `https://login.microsoftonline.com/<tenant-id>` |
    | Variable | `ADMIN_AUTH_CLIENT_ID` | Admin SPA client ID |
    | Variable | `ADMIN_AUTH_API_SCOPES` | `api://<api-client-id>/access_as_user` |
    | Variable | `ADMIN_AUTH_REQUIRED_ROLE` | `Olga.Admin` (optional, this is the default) |
 
-4. **Olga.Core:** allow CORS from the admin panel's origin.
+4. **Olga.Core:**
+   - allow CORS from the admin panel's origin
+   - return an `etag` on mutable admin resources and require that value in `If-Match` for updates
+   - implement `POST /v1/admin/reports/{reportId}/suspend-member` so member suspension and the report's transition to `ACTIONED` commit in one database transaction
 
 ---
 
@@ -163,14 +167,14 @@ node -e "console.log(require('crypto').createHash('sha256').update(process.argv[
 | `npm run test:watch` | Run the tests in watch mode |
 | `npm run preview` | Serve the production build |
 
-CI (`.github/workflows/ci.yml`) runs lint, typecheck, tests and build on every PR and every push to `develop` and `main`.
+The `build-test-deploy` workflow runs linting, type checking, tests, and a build on every PR and every push to `develop` and `main`.
 
 ---
 
 ## Project structure
 
 ```
-├── .github/workflows/         # ci.yml, deploy.yml
+├── .github/workflows/         # build-test-deploy.yml
 ├── environments.json          # dev + prod Olga.Core URLs (single source of truth)
 ├── public/config.json         # runtime config for local runs (replaced on deploy)
 ├── scripts/write-config.mjs   # writes config.json + security headers for an environment

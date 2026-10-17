@@ -14,7 +14,7 @@ export function Privacy() {
   const now = useNow();
   const requests = useQuery({ queryKey: ['privacy'], queryFn: getPrivacyRequests });
   const update = useMutation({
-    mutationFn: ({ p, s }: { p: PrivacyRequest; s: PrivacyStatus }) => setPrivacyRequestStatus(p.privacyRequestId, s),
+    mutationFn: ({ p, s }: { p: PrivacyRequest; s: PrivacyStatus }) => setPrivacyRequestStatus(p.privacyRequestId, s, p.etag),
     onSuccess: (_, { s }) => {
       toast('success', `Request marked ${s.toLowerCase()}`);
       qc.invalidateQueries({ queryKey: ['privacy'] });

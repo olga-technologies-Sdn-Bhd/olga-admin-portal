@@ -4,7 +4,12 @@
 export type ProfileStatus = 'DRAFT' | 'PENDING_REVIEW' | 'ACTIVE' | 'HIDDEN';
 export const PROFILE_STATUSES: ProfileStatus[] = ['ACTIVE', 'DRAFT', 'PENDING_REVIEW', 'HIDDEN'];
 
-export interface AdminMember {
+export interface Versioned {
+  /** Strong HTTP entity tag derived from the database row_version. */
+  etag: string;
+}
+
+export interface AdminMember extends Versioned {
   memberId: string;
   displayName: string;
   headline: string | null;
@@ -19,7 +24,7 @@ export interface AdminMember {
 export type EventStatus = 'DRAFT' | 'PUBLISHED' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
 export const EVENT_STATUSES: EventStatus[] = ['DRAFT', 'PUBLISHED', 'ACTIVE', 'COMPLETED', 'CANCELLED'];
 
-export interface AdminEvent {
+export interface AdminEvent extends Versioned {
   eventId: string;
   communityId: string;
   name: string;
@@ -55,7 +60,7 @@ export interface Attendee {
   isLive: boolean;
 }
 
-export interface Venue {
+export interface Venue extends Versioned {
   venueId: string;
   name: string;
   countryCode: string;
@@ -76,7 +81,7 @@ export interface VenueInput {
 
 export type ReportStatus = 'OPEN' | 'TRIAGED' | 'ACTIONED' | 'CLOSED';
 
-export interface ModerationReport {
+export interface ModerationReport extends Versioned {
   reportId: string;
   sourceType: string;
   subjectMemberId: string | null;
@@ -91,7 +96,7 @@ export interface ModerationReport {
 
 export type PrivacyStatus = 'OPEN' | 'VERIFIED' | 'PROCESSING' | 'COMPLETED' | 'REJECTED';
 
-export interface PrivacyRequest {
+export interface PrivacyRequest extends Versioned {
   privacyRequestId: string;
   memberId: string;
   requestType: string;

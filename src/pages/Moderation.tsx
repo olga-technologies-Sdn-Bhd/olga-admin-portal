@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getReports, setMemberStatus, setReportStatus } from '../api/admin';
+import { getReports, setReportStatus, suspendReportedMember } from '../api/admin';
 import type { ModerationReport, ReportStatus } from '../api/types';
 import { Pagination, usePagination } from '../components/Pagination';
 import { useConfirm, useToast } from '../components/feedback';
@@ -14,10 +14,9 @@ export function Moderation() {
   const reports = useQuery({ queryKey: ['reports'], queryFn: getReports });
   const refresh = () => ['reports', 'stats', 'members'].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
   const update = useMutation({
-    mutationFn: async ({ r, s, suspend }: { r: ModerationReport; s: ReportStatus; suspend?: boolean }) => {
-      if (suspend && r.subjectMemberId) await setMemberStatus(r.subjectMemberId, 'HIDDEN');
-      return setReportStatus(r.reportId, s);
-    },
+    mutationFn: ({ r, s, suspend }: { r: ModerationReport; s: ReportStatus; suspend?: boolean }) => suspend
+      ? suspendReportedMember(r.reportId, r.etag)
+      : setReportStatus(r.reportId, s, r.etag),
     onSuccess: (_, { r, s, suspend }) => { toast('success', suspend ? `${name(r)} suspended and report actioned` : `Report marked ${s.toLowerCase()}`); refresh(); },
     onError: (e) => toast('error', `Update failed: ${errorMessage(e)}`),
   });
