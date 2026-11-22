@@ -4,7 +4,7 @@ import {
   applySciApproval, createSciApproval, decideSciApproval, getSciApprovals,
   getSciConfiguration, getSciOverview,
 } from '../api/admin';
-import type { SciChangeApproval, SciChangeProposal, SciChangeType } from '../api/types';
+import type { SciChangeApproval, SciChangeType } from '../api/types';
 import { useToast } from '../components/feedback';
 import { Badge, PageHeader, QueryState, StatCard, errorMessage, fmtDate } from '../components/ui';
 
