@@ -21,6 +21,7 @@ const Venues = page(() => import('./pages/Venues'), 'Venues');
 const Moderation = page(() => import('./pages/Moderation'), 'Moderation');
 const Privacy = page(() => import('./pages/Privacy'), 'Privacy');
 const Settings = page(() => import('./pages/Settings'), 'Settings');
+const SciGovernance = page(() => import('./pages/SciGovernance'), 'SciGovernance');
 const NotFound = page(() => import('./pages/NotFound'), 'NotFound');
 
 function createQueryClient() {
@@ -79,6 +80,7 @@ async function bootstrap() {
                       <Route path="moderation" element={<Moderation />} />
                       <Route path="privacy" element={<Privacy />} />
                       <Route path="settings" element={<Settings />} />
+                      <Route path="sci" element={<SciGovernance />} />
                       <Route path="*" element={<NotFound />} />
                     </Route>
                   </Routes>

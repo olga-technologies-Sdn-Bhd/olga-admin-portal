@@ -4,6 +4,7 @@ import { mocksEnabled, request } from './client';
 import type {
   AdminEvent, AdminMember, Attendee, DashboardStats, EventInput, ModerationReport, PrivacyRequest,
   PrivacyStatus, ProfileStatus, ReportStatus, Venue, VenueInput,
+  SciAdminConfiguration, SciAdminOverview, SciChangeApproval, SciChangeApprovalPage, SciChangeProposal,
 } from './types';
 
 const mock = () => import('./mock');
@@ -81,4 +82,34 @@ export async function getPrivacyRequests(): Promise<PrivacyRequest[]> {
 export async function setPrivacyRequestStatus(privacyRequestId: string, status: PrivacyStatus, etag: string): Promise<PrivacyRequest> {
   if (mocksEnabled()) return (await mock()).patch('privacyRequests', 'privacyRequestId', privacyRequestId, { status });
   return request('PATCH', itemPath('privacy-requests', privacyRequestId), { status }, { ifMatch: etag });
+}
+
+export async function getSciOverview(): Promise<SciAdminOverview> {
+  if (mocksEnabled()) return { memberStateCount: 0, readyCount: 0, recalculatingCount: 0, totalSciCount: 0, pendingApprovalCount: 0, failedScoringJobCount: 0, asOf: new Date().toISOString() };
+  return request('GET', '/v1/admin/sci/overview');
+}
+
+export async function getSciConfiguration(): Promise<SciAdminConfiguration> {
+  if (mocksEnabled()) return { scoringConfigId: 'SCI_GLOBAL_V2', scorerVersion: 'sci-v2', status: 'ACTIVE', semanticWeight: .55, complementarityWeight: .30, recencyWeight: .15, estimatedScoreCap: 85, waitlistThreshold: 10, networkThreshold: 30, recencyFullDays: 30, recencyDecayDays: 365, estimatedRecency: .5, productConfigId: 'SCI_PRODUCT_V1', initialGoalValue: 1500, nextGoalIncrement: null, relationshipInactivityDays: 180, outcomeValidityDays: 365, reachOutDefaultThreshold: 70, productStatus: 'ACTIVE', etag: '"mock"' };
+  return request('GET', '/v1/admin/sci/configuration');
+}
+
+export async function getSciApprovals(): Promise<SciChangeApprovalPage> {
+  if (mocksEnabled()) return { items: [], nextCursor: null };
+  return request('GET', '/v1/admin/sci/approvals?limit=100');
+}
+
+export async function createSciApproval(input: SciChangeProposal): Promise<SciChangeApproval> {
+  if (mocksEnabled()) return { changeApprovalId: crypto.randomUUID(), ...input, payloadHash: 'mock', requestedBy: 'mock-admin', requestedAt: new Date().toISOString(), approvedBy: null, approvedAt: null, status: input.changeType === 'CORE_RULE' ? 'APPROVED' : 'PENDING', appliedAt: null, allowedActions: [], etag: '"mock"' };
+  return request('POST', '/v1/admin/sci/approvals', input);
+}
+
+export async function decideSciApproval(value: SciChangeApproval, approve: boolean): Promise<SciChangeApproval> {
+  if (mocksEnabled()) return { ...value, status: approve ? 'APPROVED' : 'REJECTED', allowedActions: approve ? ['APPLY'] : [] };
+  return request('POST', `${itemPath('sci/approvals', value.changeApprovalId)}/decision`, { approve }, { ifMatch: value.etag });
+}
+
+export async function applySciApproval(value: SciChangeApproval): Promise<SciChangeApproval> {
+  if (mocksEnabled()) return { ...value, status: 'APPLIED', appliedAt: new Date().toISOString(), allowedActions: [] };
+  return request('POST', `${itemPath('sci/approvals', value.changeApprovalId)}/apply`, undefined, { ifMatch: value.etag });
 }

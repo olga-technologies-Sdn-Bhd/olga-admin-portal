@@ -21,7 +21,7 @@ const sections: { label: string; items: { to: string; label: string; icon: IconN
       { to: '/privacy', label: 'Privacy requests', icon: 'lock' },
     ],
   },
-  { label: 'System', items: [{ to: '/settings', label: 'Settings', icon: 'settings' }] },
+  { label: 'System', items: [{ to: '/sci', label: 'SCI governance', icon: 'activity' }, { to: '/settings', label: 'Settings', icon: 'settings' }] },
 ];
 
 const envLabel = { local: 'Local', dev: 'Dev', staging: 'Staging', production: 'Prod' } as const;

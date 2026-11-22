@@ -115,3 +115,64 @@ export interface DashboardStats {
   pendingPrivacyRequests: number;
   connectionsLast7Days: number;
 }
+
+export interface SciAdminOverview {
+  memberStateCount: number;
+  readyCount: number;
+  recalculatingCount: number;
+  totalSciCount: number;
+  pendingApprovalCount: number;
+  failedScoringJobCount: number;
+  asOf: string;
+}
+
+export interface SciAdminConfiguration extends Versioned {
+  scoringConfigId: string;
+  scorerVersion: string;
+  status: string;
+  semanticWeight: number;
+  complementarityWeight: number;
+  recencyWeight: number;
+  estimatedScoreCap: number;
+  waitlistThreshold: number;
+  networkThreshold: number;
+  recencyFullDays: number;
+  recencyDecayDays: number;
+  estimatedRecency: number;
+  productConfigId: string;
+  initialGoalValue: number;
+  nextGoalIncrement: number | null;
+  relationshipInactivityDays: number;
+  outcomeValidityDays: number;
+  reachOutDefaultThreshold: number;
+  productStatus: string;
+}
+
+export type SciChangeType = 'CORE_RULE' | 'OPERATIONAL_SETTING' | 'SCORING_CALIBRATION' | 'FULL_RESCORE' | 'OUTCOME_CORRECTION';
+export interface SciChangeProposal {
+  changeType: SciChangeType;
+  resourceType: string;
+  resourceId: string;
+  payload: Record<string, unknown>;
+}
+
+export interface SciChangeApproval extends Versioned {
+  changeApprovalId: string;
+  changeType: SciChangeType;
+  resourceType: string;
+  resourceId: string;
+  payload: Record<string, unknown>;
+  payloadHash: string;
+  requestedBy: string;
+  requestedAt: string;
+  approvedBy: string | null;
+  approvedAt: string | null;
+  status: string;
+  appliedAt: string | null;
+  allowedActions: ('APPROVE' | 'REJECT' | 'APPLY')[];
+}
+
+export interface SciChangeApprovalPage {
+  items: SciChangeApproval[];
+  nextCursor: string | null;
+}
