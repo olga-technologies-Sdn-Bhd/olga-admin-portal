@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { getPrivacyRequests, setPrivacyRequestStatus } from '../api/admin';
 import type { PrivacyRequest, PrivacyStatus } from '../api/types';
 import { Pagination, usePagination } from '../components/Pagination';
@@ -51,9 +52,10 @@ export function Privacy() {
               <tbody>
                 {pageRows.map((p) => {
                   const overdue = !closed(p) && p.dueAt !== null && Date.parse(p.dueAt) < now;
+                  const pending = update.isPending && update.variables?.p.privacyRequestId === p.privacyRequestId;
                   return (
                     <tr key={p.privacyRequestId}>
-                      <td><code>{p.privacyRequestId.slice(0, 12)}</code></td>
+                      <td><Link className="record-link" to={`/privacy/${encodeURIComponent(p.privacyRequestId)}`}><code>{p.privacyRequestId.slice(0, 12)}</code></Link></td>
                       <td>{p.memberId}</td>
                       <td>{p.requestType.replace(/_/g, ' ').toLowerCase()}</td>
                       <td>{fmtDate(p.createdAt)}</td>
@@ -61,10 +63,10 @@ export function Privacy() {
                       <td><Badge value={p.status} /></td>
                       <td>
                         <div className="row-actions">
-                          {p.status === 'OPEN' && <button className="btn btn-sm" disabled={update.isPending} onClick={() => update.mutate({ p, s: 'VERIFIED' })}>Verify identity</button>}
-                          {p.status === 'VERIFIED' && <button className="btn btn-sm" disabled={update.isPending} onClick={() => update.mutate({ p, s: 'PROCESSING' })}>Start processing</button>}
-                          {p.status === 'PROCESSING' && <button className="btn btn-sm btn-primary" disabled={update.isPending} onClick={() => void finish(p, 'COMPLETED')}>Mark complete</button>}
-                          {!closed(p) && <button className="btn btn-sm btn-danger" disabled={update.isPending} onClick={() => void finish(p, 'REJECTED')}>Reject</button>}
+                          {p.status === 'OPEN' && <button className="btn btn-sm" disabled={pending} onClick={() => update.mutate({ p, s: 'VERIFIED' })}>{pending ? 'Updating…' : 'Verify identity'}</button>}
+                          {p.status === 'VERIFIED' && <button className="btn btn-sm" disabled={pending} onClick={() => update.mutate({ p, s: 'PROCESSING' })}>{pending ? 'Updating…' : 'Start processing'}</button>}
+                          {p.status === 'PROCESSING' && <button className="btn btn-sm btn-primary" disabled={pending} onClick={() => void finish(p, 'COMPLETED')}>{pending ? 'Updating…' : 'Mark complete'}</button>}
+                          {!closed(p) && <button className="btn btn-sm btn-danger" disabled={pending} onClick={() => void finish(p, 'REJECTED')}>{pending ? 'Updating…' : 'Reject'}</button>}
                         </div>
                       </td>
                     </tr>

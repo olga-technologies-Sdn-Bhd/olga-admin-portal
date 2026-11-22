@@ -20,6 +20,7 @@ const paths = {
   activity: 'M22 12h-4l-3 9L9 3l-3 9H2',
   eye: 'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
   check: 'M20 6 9 17l-5-5',
+  more: 'M5 12h.01M12 12h.01M19 12h.01',
 } as const;
 
 export type IconName = keyof typeof paths;

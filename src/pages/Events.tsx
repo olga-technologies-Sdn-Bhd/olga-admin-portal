@@ -1,13 +1,13 @@
 import { useState, type FormEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useSearchParams } from 'react-router-dom';
-import { cancelEvent, createEvent, getAttendees, getEvents, getVenues, publishEvent, updateEvent } from '../api/admin';
+import { Link, useSearchParams } from 'react-router-dom';
+import { cancelEvent, createEvent, getEvents, getVenues, publishEvent, updateEvent } from '../api/admin';
 import { EVENT_STATUSES, type AdminEvent, type EventInput, type EventStatus } from '../api/types';
 import { Pagination, usePagination } from '../components/Pagination';
 import { useConfirm, useToast } from '../components/feedback';
 import { Icon } from '../components/icons';
 import { VenueForm } from './Venues';
-import { Badge, Modal, PageHeader, QueryState, errorMessage, fmtDate, fromLocalInput, toLocalInput } from '../components/ui';
+import { ActionMenu, Badge, FilterSummary, Modal, PageHeader, QueryState, SortableHeader, errorMessage, fmtDate, fromLocalInput, toLocalInput } from '../components/ui';
 
 export function Events() {
   const qc = useQueryClient();
@@ -16,8 +16,8 @@ export function Events() {
   const [params, setParams] = useSearchParams();
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<EventStatus | ''>('');
+  const [sort, setSort] = useState<{ key: 'name' | 'startsAt' | 'attendeeCount' | 'status'; direction: 'asc' | 'desc' }>({ key: 'startsAt', direction: 'desc' });
   const [editing, setEditing] = useState<AdminEvent | null>(null);
-  const [viewing, setViewing] = useState<AdminEvent | null>(null);
   const creating = params.get('new') === '1';
   const events = useQuery({ queryKey: ['events'], queryFn: getEvents });
 
@@ -31,8 +31,14 @@ export function Events() {
   const q = search.trim().toLowerCase();
   const rows = [...(events.data ?? [])]
     .filter((e) => (!status || e.status === status) && (!q || e.name.toLowerCase().includes(q) || (e.venue ?? '').toLowerCase().includes(q)))
-    .sort((a, b) => Date.parse(b.startsAt) - Date.parse(a.startsAt));
+    .sort((a, b) => {
+      const left = sort.key === 'startsAt' ? Date.parse(a.startsAt) : a[sort.key];
+      const right = sort.key === 'startsAt' ? Date.parse(b.startsAt) : b[sort.key];
+      const result = typeof left === 'number' && typeof right === 'number' ? left - right : String(left).localeCompare(String(right));
+      return sort.direction === 'asc' ? result : -result;
+    });
   const { pageRows, ...pager } = usePagination(rows);
+  const changeSort = (key: typeof sort.key) => setSort((current) => ({ key, direction: current.key === key && current.direction === 'asc' ? 'desc' : 'asc' }));
 
   const publish = async (e: AdminEvent) => {
     const ok = await confirm({ title: `Publish ${e.name}?`, message: 'It becomes visible in the app and members can register.', confirmLabel: 'Publish' });
@@ -57,15 +63,25 @@ export function Events() {
             ))}
           </div>
         </div>
+        <FilterSummary labels={[q && `Search: ${search.trim()}`, status && `Status: ${status.replace(/_/g, ' ').toLowerCase()}`].filter(Boolean) as string[]}
+          onClear={() => { setSearch(''); setStatus(''); }} />
         <QueryState isLoading={events.isLoading} error={events.error} empty={events.isSuccess && rows.length === 0}
           emptyText={events.data?.length ? 'No events match these filters.' : 'No events yet. Create your first one.'} emptyIcon="calendar" />
         {rows.length > 0 && (
           <div className="table-wrap">
             <table>
-              <thead><tr><th>Event</th><th>When</th><th>Attendees</th><th>Live mode</th><th>Status</th><th><span className="sr-only">Actions</span></th></tr></thead>
+              <thead><tr>
+                <SortableHeader label="Event" active={sort.key === 'name'} direction={sort.direction} onSort={() => changeSort('name')} />
+                <SortableHeader label="When" active={sort.key === 'startsAt'} direction={sort.direction} onSort={() => changeSort('startsAt')} />
+                <SortableHeader label="Attendees" active={sort.key === 'attendeeCount'} direction={sort.direction} onSort={() => changeSort('attendeeCount')} />
+                <th>Live mode</th>
+                <SortableHeader label="Status" active={sort.key === 'status'} direction={sort.direction} onSort={() => changeSort('status')} />
+                <th><span className="sr-only">Actions</span></th>
+              </tr></thead>
               <tbody>
                 {pageRows.map((e) => {
                   const editable = e.status !== 'CANCELLED' && e.status !== 'COMPLETED';
+                  const pending = transition.isPending && transition.variables?.e.eventId === e.eventId;
                   return (
                     <tr key={e.eventId}>
                       <td><strong>{e.name}</strong><span className="sub">{e.venue ?? 'Venue TBC'}</span></td>
@@ -75,10 +91,12 @@ export function Events() {
                       <td><Badge value={e.status} /></td>
                       <td>
                         <div className="row-actions">
-                          <button className="btn btn-sm" onClick={() => setViewing(e)}><Icon name="eye" /> View</button>
-                          {editable && <button className="btn btn-sm" onClick={() => setEditing(e)}><Icon name="edit" /> Edit</button>}
-                          {e.status === 'DRAFT' && <button className="btn btn-sm btn-primary" disabled={transition.isPending} onClick={() => void publish(e)}><Icon name="send" /> Publish</button>}
-                          {editable && <button className="btn btn-sm btn-danger" disabled={transition.isPending} onClick={() => void cancel(e)}><Icon name="ban" /> Cancel</button>}
+                          <Link className="btn btn-sm" to={`/events/${encodeURIComponent(e.eventId)}`}><Icon name="eye" /> View</Link>
+                          <ActionMenu label={`Actions for ${e.name}`}>
+                            {editable && <button className="btn btn-sm" onClick={() => setEditing(e)}><Icon name="edit" /> Edit</button>}
+                            {e.status === 'DRAFT' && <button className="btn btn-sm btn-primary" disabled={pending} onClick={() => void publish(e)}><Icon name="send" /> {pending ? 'Publishing…' : 'Publish'}</button>}
+                            {editable && <button className="btn btn-sm btn-danger" disabled={pending} onClick={() => void cancel(e)}><Icon name="ban" /> {pending ? 'Updating…' : 'Cancel'}</button>}
+                          </ActionMenu>
                         </div>
                       </td>
                     </tr>
@@ -91,11 +109,9 @@ export function Events() {
         <Pagination {...pager} />
       </section>
       {(creating || editing) && <EventForm event={editing} onClose={closeForm} onSaved={refresh} />}
-      {viewing && <EventDetail event={viewing} onClose={() => setViewing(null)} />}
     </>
   );
 }
-
 function EventForm({ event, onClose, onSaved }: { event: AdminEvent | null; onClose: () => void; onSaved: () => void }) {
   const toast = useToast();
   const venues = useQuery({ queryKey: ['venues'], queryFn: getVenues });
@@ -179,43 +195,6 @@ function EventForm({ event, onClose, onSaved }: { event: AdminEvent | null; onCl
         </div>
       </form>
       {addingVenue && <VenueForm onClose={() => setAddingVenue(false)} onCreated={(v) => set('venueId', v.venueId)} />}
-    </Modal>
-  );
-}
-
-function EventDetail({ event, onClose }: { event: AdminEvent; onClose: () => void }) {
-  const attendees = useQuery({ queryKey: ['attendees', event.eventId], queryFn: () => getAttendees(event.eventId) });
-  return (
-    <Modal title={event.name} subtitle={event.venue ?? 'Venue TBC'} onClose={onClose} wide>
-      <div className="detail-grid">
-        <div><span>Status</span><Badge value={event.status} /></div>
-        <div><span>Starts</span><strong>{fmtDate(event.startsAt)}</strong></div>
-        <div><span>Ends</span><strong>{fmtDate(event.endsAt)}</strong></div>
-        <div><span>Attendees</span><strong>{event.attendeeCount}</strong></div>
-        <div><span>Live now</span><strong>{event.liveCount}</strong></div>
-      </div>
-      {event.description && <p className="muted">{event.description}</p>}
-      <div className="card">
-        <div className="card-head"><h2>Attendees</h2></div>
-        <QueryState isLoading={attendees.isLoading} error={attendees.error} empty={attendees.isSuccess && attendees.data.length === 0}
-          emptyText="Nobody has registered yet." emptyIcon="users" />
-        {!!attendees.data?.length && (
-          <div className="table-wrap" style={{ maxHeight: 320 }}>
-            <table>
-              <thead><tr><th>Member</th><th>Registered</th><th>Status</th></tr></thead>
-              <tbody>
-                {attendees.data.map((a) => (
-                  <tr key={a.memberId}>
-                    <td>{a.isLive && <span className="live-dot" title="Live now" />}<strong>{a.displayName}</strong><span className="sub">{a.headline ?? a.memberId}</span></td>
-                    <td>{fmtDate(a.registeredAt)}</td>
-                    <td><Badge value={a.status} /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
     </Modal>
   );
 }

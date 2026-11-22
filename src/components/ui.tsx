@@ -35,7 +35,11 @@ export function StatCard({ label, value, icon, tone: t = 'primary' }: { label: s
 
 export function QueryState({ isLoading, error, empty, emptyText = 'Nothing here yet.', emptyIcon = 'check' }:
   { isLoading: boolean; error: unknown; empty?: boolean; emptyText?: string; emptyIcon?: IconName }) {
-  if (isLoading) return <p className="muted pad">Loading…</p>;
+  if (isLoading) return (
+    <div className="skeleton-list" aria-label="Loading" aria-busy="true">
+      <span /><span /><span />
+    </div>
+  );
   if (error) return <p className="error pad" role="alert">Failed to load: {errorMessage(error)}</p>;
   if (empty) {
     return (
@@ -46,6 +50,38 @@ export function QueryState({ isLoading, error, empty, emptyText = 'Nothing here 
     );
   }
   return null;
+}
+
+export function SortableHeader({ label, active, direction, onSort }: {
+  label: string; active: boolean; direction: 'asc' | 'desc'; onSort: () => void;
+}) {
+  return (
+    <th aria-sort={active ? (direction === 'asc' ? 'ascending' : 'descending') : 'none'}>
+      <button className="sort-button" onClick={onSort}>
+        {label}<span aria-hidden>{active ? (direction === 'asc' ? '↑' : '↓') : '↕'}</span>
+      </button>
+    </th>
+  );
+}
+
+export function FilterSummary({ labels, onClear }: { labels: string[]; onClear: () => void }) {
+  if (!labels.length) return null;
+  return (
+    <div className="filter-summary" aria-label="Active filters">
+      <span className="muted">Filtered by</span>
+      {labels.map((label) => <span className="filter-chip" key={label}>{label}</span>)}
+      <button className="link-btn" onClick={onClear}>Clear filters</button>
+    </div>
+  );
+}
+
+export function ActionMenu({ label = 'More actions', children }: { label?: string; children: ReactNode }) {
+  return (
+    <details className="action-menu">
+      <summary className="btn btn-sm" aria-label={label} title={label}><Icon name="more" /></summary>
+      <div className="action-menu-popover">{children}</div>
+    </details>
+  );
 }
 
 export function errorMessage(error: unknown): string {

@@ -23,6 +23,11 @@ const Privacy = page(() => import('./pages/Privacy'), 'Privacy');
 const Settings = page(() => import('./pages/Settings'), 'Settings');
 const SciGovernance = page(() => import('./pages/SciGovernance'), 'SciGovernance');
 const NotFound = page(() => import('./pages/NotFound'), 'NotFound');
+const EventDetails = page(() => import('./pages/RecordDetails'), 'EventDetails');
+const MemberDetails = page(() => import('./pages/RecordDetails'), 'MemberDetails');
+const ModerationDetails = page(() => import('./pages/RecordDetails'), 'ModerationDetails');
+const PrivacyDetails = page(() => import('./pages/RecordDetails'), 'PrivacyDetails');
+const SciChangeDetails = page(() => import('./pages/RecordDetails'), 'SciChangeDetails');
 
 function createQueryClient() {
   const onAuthError = (e: unknown) => {
@@ -75,12 +80,17 @@ async function bootstrap() {
                     <Route element={<Layout />}>
                       <Route index element={<Dashboard />} />
                       <Route path="members" element={<Members />} />
+                      <Route path="members/:id" element={<MemberDetails />} />
                       <Route path="events" element={<Events />} />
+                      <Route path="events/:id" element={<EventDetails />} />
                       <Route path="venues" element={<Venues />} />
                       <Route path="moderation" element={<Moderation />} />
+                      <Route path="moderation/:id" element={<ModerationDetails />} />
                       <Route path="privacy" element={<Privacy />} />
+                      <Route path="privacy/:id" element={<PrivacyDetails />} />
                       <Route path="settings" element={<Settings />} />
                       <Route path="sci" element={<SciGovernance />} />
+                      <Route path="sci/:id" element={<SciChangeDetails />} />
                       <Route path="*" element={<NotFound />} />
                     </Route>
                   </Routes>

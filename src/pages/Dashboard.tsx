@@ -15,13 +15,13 @@ export function Dashboard() {
 
   return (
     <>
-      <PageHeader title="Dashboard" subtitle="What's happening across OL-GA today"
+      <PageHeader title="Overview" subtitle="What's happening across your company today"
         actions={<Link to="/events?new=1" className="btn btn-primary"><Icon name="plus" /> New event</Link>} />
       <QueryState isLoading={stats.isLoading} error={stats.error} />
       {stats.data && (
         <div className="grid">
-          <StatCard label="Total members" value={stats.data.totalMembers} icon="users" />
-          <StatCard label="Active members" value={stats.data.activeMembers} icon="activity" tone="ok" />
+          <StatCard label="Total people" value={stats.data.totalMembers} icon="users" />
+          <StatCard label="Active people" value={stats.data.activeMembers} icon="activity" tone="ok" />
           <StatCard label="Upcoming events" value={stats.data.upcomingEvents} icon="calendar" tone="info" />
           <StatCard label="Connections (7 days)" value={stats.data.connectionsLast7Days} icon="link" tone="primary" />
           <StatCard label="Open reports" value={stats.data.openReports} icon="flag" tone={stats.data.openReports ? 'bad' : 'ok'} />
@@ -35,7 +35,7 @@ export function Dashboard() {
           <Link to="/events?new=1" className="quick-action"><span className="stat-icon tone-primary"><Icon name="calendar" /></span><div><strong>Create event</strong><span className="sub">Draft or publish a new event</span></div></Link>
           <Link to="/venues?new=1" className="quick-action"><span className="stat-icon tone-info"><Icon name="pin" /></span><div><strong>Add venue</strong><span className="sub">Register a new location</span></div></Link>
           <Link to="/moderation" className="quick-action"><span className="stat-icon tone-bad"><Icon name="shield" /></span><div><strong>Review reports</strong><span className="sub">Handle flagged members</span></div></Link>
-          <Link to="/members" className="quick-action"><span className="stat-icon tone-ok"><Icon name="users" /></span><div><strong>Manage members</strong><span className="sub">Approve, hide or restore</span></div></Link>
+          <Link to="/members" className="quick-action"><span className="stat-icon tone-ok"><Icon name="users" /></span><div><strong>Manage people</strong><span className="sub">Approve, hide or restore</span></div></Link>
         </div>
       </section>
 

@@ -7,21 +7,22 @@ import { Icon, type IconName } from './icons';
 import { ThemeToggle } from './ThemeToggle';
 
 const sections: { label: string; items: { to: string; label: string; icon: IconName; end?: boolean }[] }[] = [
-  { label: 'Overview', items: [{ to: '/', label: 'Dashboard', icon: 'dashboard', end: true }] },
   {
-    label: 'Manage', items: [
+    label: 'Company', items: [
+      { to: '/', label: 'Overview', icon: 'dashboard', end: true },
       { to: '/events', label: 'Events', icon: 'calendar' },
+      { to: '/members', label: 'People', icon: 'users' },
       { to: '/venues', label: 'Venues', icon: 'pin' },
-      { to: '/members', label: 'Members', icon: 'users' },
     ],
   },
   {
-    label: 'Trust & safety', items: [
+    label: 'Trust & compliance', items: [
       { to: '/moderation', label: 'Moderation', icon: 'shield' },
       { to: '/privacy', label: 'Privacy requests', icon: 'lock' },
     ],
   },
-  { label: 'System', items: [{ to: '/sci', label: 'SCI governance', icon: 'activity' }, { to: '/settings', label: 'Settings', icon: 'settings' }] },
+  { label: 'Administration', items: [{ to: '/settings', label: 'Company settings', icon: 'settings' }] },
+  { label: 'OL-GA platform', items: [{ to: '/sci', label: 'SCI governance', icon: 'activity' }] },
 ];
 
 const envLabel = { local: 'Local', dev: 'Dev', staging: 'Staging', production: 'Prod' } as const;
@@ -56,7 +57,7 @@ export function Layout() {
           {useMocks && <div className="mock-flag">Mock data</div>}
           <div className="user">
             <span className="avatar" aria-hidden>{(user?.name ?? 'A').slice(0, 1).toUpperCase()}</span>
-            <span className="user-name" title={user?.username}>{user?.name ?? 'Admin'}<span className="sub">Administrator</span></span>
+            <span className="user-name" title={user?.username}>{user?.name ?? 'Admin'}<span className="sub">Company administrator</span></span>
             <ThemeToggle />
             {user && <button className="icon-btn" onClick={logout} aria-label="Sign out" title="Sign out"><Icon name="logout" /></button>}
           </div>

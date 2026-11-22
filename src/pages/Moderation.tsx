@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { getReports, setReportStatus, suspendReportedMember } from '../api/admin';
 import type { ModerationReport, ReportStatus } from '../api/types';
 import { Pagination, usePagination } from '../components/Pagination';
@@ -51,9 +52,10 @@ export function Moderation() {
               <tbody>
                 {pageRows.map((r) => {
                   const open = r.status === 'OPEN' || r.status === 'TRIAGED';
+                  const pending = update.isPending && update.variables?.r.reportId === r.reportId;
                   return (
                     <tr key={r.reportId}>
-                      <td><strong>{name(r)}</strong><span className="sub">{r.subjectMemberId ?? '—'}</span></td>
+                      <td><Link className="record-link" to={`/moderation/${encodeURIComponent(r.reportId)}`}><strong>{name(r)}</strong></Link><span className="sub">{r.subjectMemberId ?? '—'}</span></td>
                       <td>{r.sourceType.replace(/_/g, ' ').toLowerCase()}</td>
                       <td>{r.resourceType?.toLowerCase() ?? '—'}<span className="sub">{r.resourceId}</span></td>
                       <td><Badge value={r.priority} /></td>
@@ -61,9 +63,9 @@ export function Moderation() {
                       <td><Badge value={r.status} /></td>
                       <td>
                         <div className="row-actions">
-                          {r.status === 'OPEN' && <button className="btn btn-sm" disabled={update.isPending} onClick={() => update.mutate({ r, s: 'TRIAGED' })}>Triage</button>}
-                          {open && r.subjectMemberId && <button className="btn btn-sm btn-danger" disabled={update.isPending} onClick={() => void suspend(r)}>Suspend member</button>}
-                          {open && <button className="btn btn-sm" disabled={update.isPending} onClick={() => void close(r)}>Close</button>}
+                          {r.status === 'OPEN' && <button className="btn btn-sm" disabled={pending} onClick={() => update.mutate({ r, s: 'TRIAGED' })}>{pending ? 'Updating…' : 'Triage'}</button>}
+                          {open && r.subjectMemberId && <button className="btn btn-sm btn-danger" disabled={pending} onClick={() => void suspend(r)}>{pending ? 'Updating…' : 'Suspend member'}</button>}
+                          {open && <button className="btn btn-sm" disabled={pending} onClick={() => void close(r)}>{pending ? 'Updating…' : 'Close'}</button>}
                         </div>
                       </td>
                     </tr>

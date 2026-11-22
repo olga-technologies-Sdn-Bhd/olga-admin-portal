@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 import { ConfirmProvider, ToastProvider } from '../components/feedback';
 import { setConfigForTests } from '../config';
 import { Members } from './Members';
@@ -10,7 +11,7 @@ function renderMembers() {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={qc}>
-      <ToastProvider><ConfirmProvider><Members /></ConfirmProvider></ToastProvider>
+      <MemoryRouter><ToastProvider><ConfirmProvider><Members /></ConfirmProvider></ToastProvider></MemoryRouter>
     </QueryClientProvider>,
   );
 }

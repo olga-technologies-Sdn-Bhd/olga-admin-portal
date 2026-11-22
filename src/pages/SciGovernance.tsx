@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import {
   applySciApproval, createSciApproval, decideSciApproval, getSciApprovals,
   getSciConfiguration, getSciOverview,
@@ -59,10 +60,10 @@ export function SciGovernance() {
     <section className="card"><h2 className="pad">Change approvals</h2>
       <QueryState isLoading={approvals.isLoading} error={approvals.error} empty={approvals.isSuccess&&approvals.data.items.length===0} emptyText="No SCI changes." />
       {!!approvals.data?.items.length&&<div className="table-wrap"><table><thead><tr><th>Change</th><th>Resource</th><th>Requested</th><th>Status</th><th>Actions</th></tr></thead><tbody>
-        {approvals.data.items.map((value)=><tr key={value.changeApprovalId}><td>{value.changeType.replaceAll('_',' ').toLowerCase()}</td><td><code>{value.resourceId}</code></td><td>{fmtDate(value.requestedAt)}<span className="sub">{value.requestedBy}</span></td><td><Badge value={value.status}/></td><td><div className="row-actions">
-          {value.allowedActions.includes('APPROVE')&&<button className="btn btn-sm" onClick={()=>decide.mutate({value,approve:true})}>Approve</button>}
-          {value.allowedActions.includes('REJECT')&&<button className="btn btn-sm btn-danger" onClick={()=>decide.mutate({value,approve:false})}>Reject</button>}
-          {value.allowedActions.includes('APPLY')&&<button className="btn btn-sm btn-primary" onClick={()=>apply.mutate(value)}>Apply</button>}
+        {approvals.data.items.map((value)=><tr key={value.changeApprovalId}><td><Link className="record-link" to={`/sci/${encodeURIComponent(value.changeApprovalId)}`}>{value.changeType.replaceAll('_',' ').toLowerCase()}</Link></td><td><code>{value.resourceId}</code></td><td>{fmtDate(value.requestedAt)}<span className="sub">{value.requestedBy}</span></td><td><Badge value={value.status}/></td><td><div className="row-actions">
+          {value.allowedActions.includes('APPROVE')&&<button className="btn btn-sm" disabled={decide.isPending&&decide.variables?.value.changeApprovalId===value.changeApprovalId} onClick={()=>decide.mutate({value,approve:true})}>{decide.isPending&&decide.variables?.value.changeApprovalId===value.changeApprovalId?'Updating…':'Approve'}</button>}
+          {value.allowedActions.includes('REJECT')&&<button className="btn btn-sm btn-danger" disabled={decide.isPending&&decide.variables?.value.changeApprovalId===value.changeApprovalId} onClick={()=>decide.mutate({value,approve:false})}>{decide.isPending&&decide.variables?.value.changeApprovalId===value.changeApprovalId?'Updating…':'Reject'}</button>}
+          {value.allowedActions.includes('APPLY')&&<button className="btn btn-sm btn-primary" disabled={apply.isPending&&apply.variables?.changeApprovalId===value.changeApprovalId} onClick={()=>apply.mutate(value)}>{apply.isPending&&apply.variables?.changeApprovalId===value.changeApprovalId?'Applying…':'Apply'}</button>}
         </div></td></tr>)}
       </tbody></table></div>}
     </section>

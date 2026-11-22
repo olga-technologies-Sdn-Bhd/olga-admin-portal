@@ -14,8 +14,9 @@ export function Settings() {
 
   return (
     <>
-      <PageHeader title="Settings" subtitle="Environment and connectivity" />
+      <PageHeader title="Company settings" subtitle="Company configuration and portal information" />
       <section className="card">
+        <div className="card-head"><h2>System information</h2></div>
         <div className="field"><label>Environment</label><span>{environment}</span></div>
         <div className="field"><label>Core API URL</label><code>{apiBaseUrl || `${__API_TARGET__.url} (${__API_TARGET__.name}, via dev proxy)`}</code></div>
         <div className="field"><label>Data source</label><span>{useMocks ? 'Mock data' : 'Live API'}</span></div>
